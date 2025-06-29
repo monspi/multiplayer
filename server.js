@@ -43,16 +43,17 @@ app.get('/api/sprites', (req, res) => {
     }
 });
 
-// API: 获取sprite列表
-app.get('/api/sprites', (req, res) => {
+// API路由 - 获取背景图片列表
+app.get('/api/backgrounds', (req, res) => {
+    const backgroundPath = path.join(__dirname, 'assets', 'background');
+    
     try {
-        const spritePath = path.join(__dirname, 'assets', 'sprite');
-        const files = fs.readdirSync(spritePath);
-        const spriteFiles = files.filter(file => file.endsWith('.png'));
-        res.json(spriteFiles);
+        const files = fs.readdirSync(backgroundPath);
+        const backgroundFiles = files.filter(file => file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg'));
+        res.json(backgroundFiles);
     } catch (error) {
-        console.error('读取sprite目录失败:', error);
-        res.status(500).json({ error: '无法读取sprite目录' });
+        console.error('读取background文件夹失败:', error);
+        res.status(500).json({ error: 'Failed to read background directory' });
     }
 });
 
@@ -96,7 +97,8 @@ io.on('connection', (socket) => {
             screenWidth: playerData.screenWidth || 1920,
             screenHeight: playerData.screenHeight || 1080,
             isOnline: true,
-            lastActiveTime: Date.now()
+            lastActiveTime: Date.now(),
+            joinTime: Date.now() // 添加加入时间用于移动端提示
         };
 
         if (config.debug.logConnections) {
@@ -148,7 +150,7 @@ io.on('connection', (socket) => {
         
         if (players[socket.id]) {
             if (config.debug.logConnections) {
-                console.log(`玩家 ${players[socket.id].name} 离线，角色将保留10分钟`);
+                console.log(`玩家 ${players[socket.id].name} 离线，角色将保留4小时`);
             }
             
             // 将玩家标记为离线，而不是删除
@@ -172,7 +174,7 @@ function getRandomColor() {
 // 清理超时的离线玩家
 function cleanupOfflinePlayers() {
     const now = Date.now();
-    const OFFLINE_TIMEOUT = 10 * 60 * 1000; // 10分钟
+    const OFFLINE_TIMEOUT = 4 * 60 * 60 * 1000; // 4小时
 
     Object.keys(players).forEach(playerId => {
         const player = players[playerId];
@@ -192,5 +194,5 @@ function cleanupOfflinePlayers() {
 setInterval(cleanupOfflinePlayers, 60 * 1000);
 
 server.listen(PORT, () => {
-    console.log(`服务器运行在 http://localhost:${PORT}`);
+    console.log(`🎮 异世界创造家/Isekai Maker 服务器运行在 http://localhost:${PORT}`);
 });

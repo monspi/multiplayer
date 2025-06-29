@@ -1,7 +1,7 @@
 {
-  "name": "multiplayer-game",
+  "name": "isekai-maker",
   "version": "1.0.0",
-  "description": "A multiplayer online web game",
+  "description": "异世界创造家 - A multiplayer online web game / Isekai Maker",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

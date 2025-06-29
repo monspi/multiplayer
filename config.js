@@ -14,7 +14,7 @@ const config = {
         moveSpeed: 4,      // 移动速度
         maxPlayers: 50,
         playerNameMaxLength: 15,
-        offlineRetentionTime: 10 * 60 * 1000 // 离线玩家保留时间：10分钟
+        offlineRetentionTime: 4 * 60 * 60 * 1000 // 离线玩家保留时间：4小时
     },
     
     // 玩家默认配置
