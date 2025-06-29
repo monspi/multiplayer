@@ -239,6 +239,7 @@
                     <div class="control-item">🔄 方向键移动</div>
                 </div>
                 <p>💡 提示：刷新或关闭网页后角色会离线并在地图中继续保留4个小时 💡</p>
+                <p id="onlineCount" style="color: rgba(255, 255, 255, 0.9); font-weight: normal;">🌐 正在获取在线人数...</p>
             </div>
             
             <div>
@@ -262,5 +263,32 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="game.js"></script>
+    <script>
+        // 获取并更新在线人数
+        async function updateOnlineCount() {
+            try {
+                const response = await fetch('/api/online-count');
+                const data = await response.json();
+                const onlineCountElement = document.getElementById('onlineCount');
+                
+                if (onlineCountElement) {
+                    onlineCountElement.textContent = `🌐 当前在线: ${data.online} 人`;
+                }
+            } catch (error) {
+                console.error('获取在线人数失败:', error);
+                const onlineCountElement = document.getElementById('onlineCount');
+                if (onlineCountElement) {
+                    onlineCountElement.textContent = '🌐 无法获取在线人数';
+                }
+            }
+        }
+        
+        // 页面加载时立即更新一次
+        document.addEventListener('DOMContentLoaded', () => {
+            updateOnlineCount();
+            // 每30秒更新一次在线人数
+            setInterval(updateOnlineCount, 30000);
+        });
+    </script>
 </body>
 </html>

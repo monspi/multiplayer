@@ -62,6 +62,19 @@ app.get('/api/backgrounds', (req, res) => {
     }
 });
 
+// API路由 - 获取当前在线人数
+app.get('/api/online-count', (req, res) => {
+    const totalPlayers = Object.keys(players).length;
+    const onlinePlayers = Object.values(players).filter(player => player.isOnline !== false).length;
+    const offlinePlayers = totalPlayers - onlinePlayers;
+    
+    res.json({
+        online: onlinePlayers,
+        offline: offlinePlayers,
+        total: totalPlayers
+    });
+});
+
 // Socket.io 连接处理
 io.on('connection', (socket) => {
     if (config.debug.logConnections) {
