@@ -8,12 +8,13 @@ const config = {
     
     // 游戏世界配置
     game: {
-        worldWidth: 800,
-        worldHeight: 600,
-        playerSize: 20,
-        moveSpeed: 3,
+        worldWidth: 4800,  // 大地图宽度 (48像素的倍数: 48 * 100)
+        worldHeight: 3600, // 大地图高度 (48像素的倍数: 48 * 75)
+        playerSize: 48,    // 玩家sprite尺寸
+        moveSpeed: 4,      // 移动速度
         maxPlayers: 50,
-        playerNameMaxLength: 15
+        playerNameMaxLength: 15,
+        offlineRetentionTime: 10 * 60 * 1000 // 离线玩家保留时间：10分钟
     },
     
     // 玩家默认配置
