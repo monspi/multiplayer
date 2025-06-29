@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>异世界创造家/Isekai Maker</title>
+    <style>
+        @font-face {
+            font-family: 'VonwaonBitmap';
+            src: url('/assets/VonwaonBitmap-16px.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'VonwaonBitmap', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden; /* 防止滚动条 */
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-screen {
+            display: block;
+        }
+
+        .game-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #2c3e50;
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        input[type="text"] {
+            padding: 15px 20px;
+            font-size: 18px;
+            border: none;
+            border-radius: 25px;
+            margin: 10px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.9);
+            min-width: 200px;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.95);
+            cursor: auto;
+            display: block;
+            touch-action: none; /* 防止触摸手势冲突 */
+            user-select: none; /* 防止文本选择 */
+            -webkit-user-select: none;
+            -webkit-touch-callout: none; /* 防止长按菜单 */
+        }
+
+        .game-hud {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            min-width: 200px;
+        }
+
+        .hud-info {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .player-name {
+            font-weight: bold;
+            color: #4ECDC4;
+            margin-bottom: 5px;
+        }
+
+        .online-count {
+            color: #FFD700;
+            font-size: 13px;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            
+            .container {
+                padding: 20px;
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            input[type="text"] {
+                font-size: 16px;
+                padding: 12px 15px;
+                min-width: 250px;
+            }
+            
+            button {
+                font-size: 16px;
+                padding: 12px 25px;
+            }
+            
+            .game-hud {
+                bottom: 10px;
+                left: 10px;
+                right: 10px;
+            }
+            
+            .hud-info {
+                font-size: 14px;
+            }
+            
+            /* 确保虚拟摇杆不会与UI冲突 */
+            .game-hud {
+                pointer-events: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 登录界面 -->
+        <div id="loginScreen" class="login-screen">
+            <h1>🎮 异世界创造家<br><small style="font-size: 0.6em; opacity: 0.8;">Isekai Maker</small></h1>
+            <div>
+                <input type="text" id="playerName" placeholder="输入你的名字" maxlength="15">
+                <br>
+                <button onclick="joinGame()">加入游戏</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 游戏界面 - 移出container以避免布局冲突 -->
+    <div id="gameScreen" class="game-screen">
+        <canvas id="gameCanvas"></canvas>
+        <div class="game-hud">
+            <div class="hud-info">
+                <div class="player-name">欢迎, <span id="currentPlayerName"></span>!</div>
+                <div class="online-count"><span id="playerCount">0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

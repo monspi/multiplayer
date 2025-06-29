@@ -87,7 +87,6 @@ dist
 
 # Gatsby 文件
 .cache/
-public
 
 # Storybook 构建输出
 .out
