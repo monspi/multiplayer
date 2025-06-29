@@ -272,7 +272,7 @@
                 const onlineCountElement = document.getElementById('onlineCount');
                 
                 if (onlineCountElement) {
-                    onlineCountElement.textContent = `🌐 当前在线: ${data.online} 人`;
+                    onlineCountElement.textContent = `🌐 当前在线: ${data.online}/${data.maxPlayers} 人`;
                 }
             } catch (error) {
                 console.error('获取在线人数失败:', error);

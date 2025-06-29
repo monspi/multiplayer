@@ -12,7 +12,7 @@ const config = {
         worldHeight: 3600, // 大地图高度 (48像素的倍数: 48 * 75)
         playerSize: 48,    // 玩家sprite尺寸
         moveSpeed: 4,      // 移动速度
-        maxPlayers: 50,
+        maxPlayers: 1000,
         playerNameMaxLength: 15,
         offlineRetentionTime: 4 * 60 * 60 * 1000 // 离线玩家保留时间：4小时
     },

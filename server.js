@@ -71,7 +71,8 @@ app.get('/api/online-count', (req, res) => {
     res.json({
         online: onlinePlayers,
         offline: offlinePlayers,
-        total: totalPlayers
+        total: totalPlayers,
+        maxPlayers: config.game.maxPlayers
     });
 });
 
