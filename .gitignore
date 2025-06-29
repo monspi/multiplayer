@@ -1,5 +1,9 @@
 # Node.js 多人游戏项目 .gitignore
 
+# 游戏数据文件
+data/
+*.json
+
 # 依赖包目录
 node_modules/
 npm-debug.log*

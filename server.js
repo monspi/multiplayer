@@ -14,6 +14,11 @@ const PORT = config.server.port;
 // 存储所有玩家数据
 const players = {};
 
+// 数据持久化配置
+const DATA_FILE_PATH = path.join(__dirname, 'data', 'offline_players.json');
+const DATA_BACKUP_PATH = path.join(__dirname, 'data', 'offline_players_backup.json');
+const SAVE_INTERVAL = 30 * 1000; // 每30秒保存一次离线玩家数据
+
 // 静态文件服务
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
@@ -157,6 +162,9 @@ io.on('connection', (socket) => {
             players[socket.id].isOnline = false;
             players[socket.id].disconnectTime = Date.now();
             
+            // 立即保存离线玩家数据
+            saveOfflinePlayersData();
+            
             // 通知其他玩家此玩家离线（但角色仍在游戏中）
             socket.broadcast.emit('playerOffline', {
                 id: socket.id,
@@ -171,10 +179,125 @@ function getRandomColor() {
     return config.player.colors[Math.floor(Math.random() * config.player.colors.length)];
 }
 
+// 数据持久化函数
+function ensureDataDirectory() {
+    const dataDir = path.join(__dirname, 'data');
+    if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+        console.log('📁 创建数据目录:', dataDir);
+    }
+}
+
+// 保存离线玩家数据
+function saveOfflinePlayersData() {
+    try {
+        ensureDataDirectory();
+        
+        // 只保存离线玩家的数据
+        const offlinePlayers = {};
+        Object.keys(players).forEach(playerId => {
+            const player = players[playerId];
+            if (!player.isOnline) {
+                offlinePlayers[playerId] = {
+                    ...player,
+                    savedAt: Date.now() // 记录保存时间
+                };
+            }
+        });
+        
+        const dataToSave = {
+            players: offlinePlayers,
+            lastSaved: Date.now(),
+            version: '1.0'
+        };
+        
+        // 创建备份（如果原文件存在）
+        if (fs.existsSync(DATA_FILE_PATH)) {
+            fs.copyFileSync(DATA_FILE_PATH, DATA_BACKUP_PATH);
+        }
+        
+        // 保存新数据
+        fs.writeFileSync(DATA_FILE_PATH, JSON.stringify(dataToSave, null, 2));
+        
+        const offlineCount = Object.keys(offlinePlayers).length;
+        if (offlineCount > 0) {
+            console.log(`💾 已保存 ${offlineCount} 个离线玩家数据`);
+        }
+    } catch (error) {
+        console.error('❌ 保存离线玩家数据失败:', error);
+    }
+}
+
+// 加载离线玩家数据
+function loadOfflinePlayersData() {
+    try {
+        ensureDataDirectory();
+        
+        if (!fs.existsSync(DATA_FILE_PATH)) {
+            console.log('📄 未找到离线玩家数据文件，将创建新文件');
+            return;
+        }
+        
+        const data = fs.readFileSync(DATA_FILE_PATH, 'utf8');
+        const savedData = JSON.parse(data);
+        
+        if (!savedData.players) {
+            console.log('📄 数据文件格式无效');
+            return;
+        }
+        
+        const now = Date.now();
+        const OFFLINE_TIMEOUT = 4 * 60 * 60 * 1000; // 4小时
+        let loadedCount = 0;
+        let expiredCount = 0;
+        
+        // 加载未过期的离线玩家
+        Object.keys(savedData.players).forEach(playerId => {
+            const player = savedData.players[playerId];
+            
+            // 检查是否过期（从断开连接时间算起）
+            if (player.disconnectTime && (now - player.disconnectTime) <= OFFLINE_TIMEOUT) {
+                players[playerId] = {
+                    ...player,
+                    isOnline: false // 确保标记为离线
+                };
+                loadedCount++;
+            } else {
+                expiredCount++;
+            }
+        });
+        
+        console.log(`📂 已加载 ${loadedCount} 个离线玩家数据`);
+        if (expiredCount > 0) {
+            console.log(`🗑️  清理了 ${expiredCount} 个过期的离线玩家数据`);
+        }
+        
+        // 立即保存一次以清理过期数据
+        if (expiredCount > 0) {
+            saveOfflinePlayersData();
+        }
+        
+    } catch (error) {
+        console.error('❌ 加载离线玩家数据失败:', error);
+        
+        // 尝试从备份文件恢复
+        if (fs.existsSync(DATA_BACKUP_PATH)) {
+            console.log('🔄 尝试从备份文件恢复...');
+            try {
+                fs.copyFileSync(DATA_BACKUP_PATH, DATA_FILE_PATH);
+                loadOfflinePlayersData(); // 递归调用重新加载
+            } catch (backupError) {
+                console.error('❌ 从备份恢复也失败了:', backupError);
+            }
+        }
+    }
+}
+
 // 清理超时的离线玩家
 function cleanupOfflinePlayers() {
     const now = Date.now();
     const OFFLINE_TIMEOUT = 4 * 60 * 60 * 1000; // 4小时
+    let cleanedCount = 0;
 
     Object.keys(players).forEach(playerId => {
         const player = players[playerId];
@@ -183,9 +306,85 @@ function cleanupOfflinePlayers() {
                 console.log(`清理超时玩家: ${player.name}`);
             }
             delete players[playerId];
+            cleanedCount++;
             
             // 通知所有在线玩家，此玩家已被清理
             io.emit('playerLeft', playerId);
+        }
+    });
+    
+    // 如果清理了玩家，立即保存数据
+    if (cleanedCount > 0) {
+        saveOfflinePlayersData();
+        console.log(`🗑️  已清理 ${cleanedCount} 个超时的离线玩家`);
+    }
+}
+
+// 每分钟检查一次离线玩家
+setInterval(cleanupOfflinePlayers, 60 * 1000);
+
+// 数据持久化 - 保存离线玩家数据
+function saveOfflinePlayers() {
+    const offlinePlayers = Object.values(players).filter(player => !player.isOnline);
+    if (offlinePlayers.length === 0) {
+        return; // 没有离线玩家，无需保存
+    }
+
+    const dataToSave = offlinePlayers.map(player => ({
+        id: player.id,
+        name: player.name,
+        x: player.x,
+        y: player.y,
+        spriteImage: player.spriteImage,
+        size: player.size,
+        screenWidth: player.screenWidth,
+        screenHeight: player.screenHeight,
+        disconnectTime: player.disconnectTime
+    }));
+
+    fs.writeFile(DATA_FILE_PATH, JSON.stringify(dataToSave), (err) => {
+        if (err) {
+            console.error('保存离线玩家数据失败:', err);
+        } else {
+            console.log('离线玩家数据已保存');
+        }
+    });
+}
+
+// 数据持久化 - 加载离线玩家数据
+function loadOfflinePlayers() {
+    if (!fs.existsSync(DATA_FILE_PATH)) {
+        return; // 数据文件不存在，跳过加载
+    }
+
+    fs.readFile(DATA_FILE_PATH, (err, data) => {
+        if (err) {
+            console.error('加载离线玩家数据失败:', err);
+            return;
+        }
+
+        try {
+            const loadedPlayers = JSON.parse(data);
+            loadedPlayers.forEach(playerData => {
+                // 重新创建玩家对象，但不再是在线状态
+                players[playerData.id] = {
+                    id: playerData.id,
+                    name: playerData.name,
+                    x: playerData.x,
+                    y: playerData.y,
+                    spriteImage: playerData.spriteImage,
+                    size: playerData.size,
+                    screenWidth: playerData.screenWidth,
+                    screenHeight: playerData.screenHeight,
+                    isOnline: false,
+                    lastActiveTime: Date.now(),
+                    joinTime: Date.now() // 重新加入时更新加入时间
+                };
+            });
+
+            console.log('离线玩家数据已加载');
+        } catch (parseErr) {
+            console.error('解析离线玩家数据失败:', parseErr);
         }
     });
 }
@@ -193,6 +392,50 @@ function cleanupOfflinePlayers() {
 // 每分钟检查一次离线玩家
 setInterval(cleanupOfflinePlayers, 60 * 1000);
 
+// 启动时加载离线玩家数据
+loadOfflinePlayersData();
+
+// 定时保存离线玩家数据
+setInterval(saveOfflinePlayersData, SAVE_INTERVAL);
+
 server.listen(PORT, () => {
     console.log(`🎮 异世界创造家/Isekai Maker 服务器运行在 http://localhost:${PORT}`);
+    console.log(`💾 数据保存间隔: ${SAVE_INTERVAL / 1000}秒`);
+    console.log(`📁 数据文件路径: ${DATA_FILE_PATH}`);
+});
+
+// 优雅关闭处理
+function gracefulShutdown(signal) {
+    console.log(`\n📋 收到 ${signal} 信号，正在保存数据并关闭服务器...`);
+    
+    // 保存最后一次数据
+    saveOfflinePlayersData();
+    
+    // 关闭服务器
+    server.close(() => {
+        console.log('🛑 服务器已关闭');
+        process.exit(0);
+    });
+    
+    // 如果10秒内没有关闭，强制退出
+    setTimeout(() => {
+        console.log('⚠️  强制关闭服务器');
+        process.exit(1);
+    }, 10000);
+}
+
+// 监听进程信号
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// 监听未捕获的异常
+process.on('uncaughtException', (error) => {
+    console.error('❌ 未捕获的异常:', error);
+    saveOfflinePlayersData(); // 保存数据后再退出
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('❌ 未处理的Promise拒绝:', reason);
+    saveOfflinePlayersData(); // 保存数据后再退出
 });
