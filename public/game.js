@@ -652,7 +652,13 @@ function drawMiniMap() {
         } else if (player.isOnline === false) {
             ctx.fillStyle = '#888888';
         } else {
-            ctx.fillStyle = '#ffff00';
+            // 为在线玩家使用与描边相同的随机颜色
+            const hash = player.id.split('').reduce((a, b) => {
+                a = ((a << 5) - a) + b.charCodeAt(0);
+                return a & a;
+            }, 0);
+            const hue = Math.abs(hash) % 360;
+            ctx.fillStyle = `hsl(${hue}, 70%, 50%)`;
         }
         
         ctx.fillRect(x - 2, y - 2, 4, 4);
@@ -674,9 +680,24 @@ function drawPlayer(player) {
     const isCurrentPlayer = currentPlayer && player.id === currentPlayer.id;
     const isOffline = player.isOnline === false;
     
-    // 如果是离线玩家，降低透明度
-    if (isOffline) {
-        ctx.globalAlpha = 0.5;
+    // 为在线角色添加随机颜色描边
+    if (!isOffline) {
+        // 生成基于玩家ID的稳定随机颜色
+        const hash = player.id.split('').reduce((a, b) => {
+            a = ((a << 5) - a) + b.charCodeAt(0);
+            return a & a;
+        }, 0);
+        const hue = Math.abs(hash) % 360;
+        const strokeColor = `hsl(${hue}, 70%, 50%)`;
+        
+        // 设置描边透明度为0.6
+        ctx.globalAlpha = 0.6;
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = 3;
+        const halfSize = SPRITE_SIZE / 2;
+        ctx.strokeRect(player.x - halfSize - 2, player.y - halfSize - 2, SPRITE_SIZE + 4, SPRITE_SIZE + 4);
+        // 重置透明度
+        ctx.globalAlpha = 1.0;
     }
     
     // 绘制玩家sprite图片
@@ -692,9 +713,6 @@ function drawPlayer(player) {
         const halfSize = SPRITE_SIZE / 2;
         ctx.fillRect(player.x - halfSize, player.y - halfSize, SPRITE_SIZE, SPRITE_SIZE);
     }
-    
-    // 重置透明度
-    ctx.globalAlpha = 1.0;
     
     // 绘制玩家名字
     ctx.fillStyle = isOffline ? '#888' : '#333';
