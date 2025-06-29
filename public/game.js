@@ -275,8 +275,8 @@ function setupSocketEvents() {
 function handleKeyDown(e) {
     keys[e.key] = true;
     
-    // 防止方向键滚动页面
-    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+    // 防止方向键和WASD滚动页面
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'W', 'a', 'A', 's', 'S', 'd', 'D'].includes(e.key)) {
         e.preventDefault();
     }
 }
@@ -293,10 +293,17 @@ function handleMovement() {
     let dx = 0;
     let dy = 0;
     
+    // 方向键移动
     if (keys['ArrowLeft']) dx -= MOVE_SPEED;
     if (keys['ArrowRight']) dx += MOVE_SPEED;
     if (keys['ArrowUp']) dy -= MOVE_SPEED;
     if (keys['ArrowDown']) dy += MOVE_SPEED;
+    
+    // WASD移动
+    if (keys['a'] || keys['A']) dx -= MOVE_SPEED;
+    if (keys['d'] || keys['D']) dx += MOVE_SPEED;
+    if (keys['w'] || keys['W']) dy -= MOVE_SPEED;
+    if (keys['s'] || keys['S']) dy += MOVE_SPEED;
     
     // 处理虚拟摇杆移动（拖拽移动）
     if (virtualJoystick.active) {
@@ -691,7 +698,7 @@ function drawPlayer(player) {
     
     // 绘制玩家名字
     ctx.fillStyle = isOffline ? '#888' : '#333';
-    ctx.font = '16px VonwaonBitmap, monospace';
+    ctx.font = isOffline ? '12px VonwaonBitmap, monospace' : '16px VonwaonBitmap, monospace';
     ctx.textAlign = 'center';
     let nameText = player.name;
     if (isOffline) {

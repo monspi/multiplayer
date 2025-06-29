@@ -167,6 +167,57 @@
                 pointer-events: none;
             }
         }
+        
+        /* 游戏说明框样式 */
+        .game-instructions {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .game-instructions h3 {
+            color: white;
+            margin: 0 0 15px 0;
+            font-size: 1.2em;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .game-instructions p {
+            color: rgba(255, 255, 255, 0.9);
+            margin: 8px 0;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+        
+        .controls-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        
+        .control-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            color: rgba(255, 255, 255, 0.95);
+        }
+        
+        @media (max-width: 768px) {
+            .controls-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .game-instructions {
+                padding: 15px;
+                margin: 15px 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -174,6 +225,22 @@
         <!-- 登录界面 -->
         <div id="loginScreen" class="login-screen">
             <h1>🎮 异世界创造家<br><small style="font-size: 0.6em; opacity: 0.8;">Isekai Maker</small></h1>
+            
+            <!-- 游戏说明框 -->
+            <div class="game-instructions">
+                <h3>🌟 游戏目标</h3>
+                <p><strong>与其他玩家协作，共同丰富这个异世界！</strong></p>
+                
+                <h3>🎮 操作方法</h3>
+                <div class="controls-list">
+                    <div class="control-item">🖱️ 鼠标拖拽移动</div>
+                    <div class="control-item">📱 触摸拖拽移动</div>
+                    <div class="control-item">⌨️ WASD键移动</div>
+                    <div class="control-item">🔄 方向键移动</div>
+                </div>
+                <p>💡 提示：刷新或关闭网页后角色会离线并在地图中继续保留4个小时 💡</p>
+            </div>
+            
             <div>
                 <input type="text" id="playerName" placeholder="输入你的名字" maxlength="15">
                 <br>
