@@ -2,7 +2,7 @@
 const config = {
     // 服务器配置
     server: {
-        port: process.env.PORT || 3000,
+        port: process.env.PORT || 1666,
         host: process.env.HOST || 'localhost'
     },
     

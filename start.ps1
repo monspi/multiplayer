@@ -38,7 +38,7 @@ if (-not (Test-Path "node_modules")) {
 
 Write-Host ""
 Write-Host "启动游戏服务器..." -ForegroundColor Green
-Write-Host "服务器将在 http://localhost:3000 启动" -ForegroundColor Yellow
+Write-Host "服务器将在 http://localhost:1666 启动" -ForegroundColor Yellow
 Write-Host "按 Ctrl+C 停止服务器" -ForegroundColor Yellow
 Write-Host ""
 

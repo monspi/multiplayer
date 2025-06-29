@@ -83,7 +83,7 @@
    ```
 
 4. **打开游戏**
-   - 在浏览器中访问：`http://localhost:3000`
+   - 在浏览器中访问：`http://localhost:1666`
    - 输入你的名字并开始游戏！
 
 ## 🎮 游戏玩法
@@ -130,7 +130,7 @@ multiplayer/
 
 你可以在 `server.js` 中修改以下配置：
 
-- **端口号**：修改 `PORT` 变量（默认：3000）
+- **端口号**：修改 `PORT` 变量（默认：1666）
 - **移动速度**：在 `game.js` 中修改 `MOVE_SPEED`（默认：3）
 - **游戏区域大小**：修改 Canvas 的 width 和 height
 - **玩家颜色**：在 `server.js` 的 `getRandomColor()` 函数中添加更多颜色
@@ -150,7 +150,7 @@ multiplayer/
    ifconfig
    ```
 
-2. 其他设备访问：`http://[你的IP地址]:3000`
+2. 其他设备访问：`http://[你的IP地址]:1666`
 
 ### 云部署
 

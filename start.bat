@@ -34,7 +34,7 @@ if not exist "node_modules" (
 
 echo.
 echo 启动游戏服务器...
-echo 服务器将在 http://localhost:3000 启动
+echo 服务器将在 http://localhost:1666 启动
 echo 按 Ctrl+C 停止服务器
 echo.
 
